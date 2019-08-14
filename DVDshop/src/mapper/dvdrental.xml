@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd" >
+<sqlMap namespace="dvd">
+	<!-- <select id="mainMovie" resultClass="com.dvdshop.vo.DvdInfo"><![CDATA[
+		select dvd_title, dvd_photo, dvd_num
+		from dvd_info
+		where dvd_num in (select dvd_num from rental where rownum < 4 )
+	]]></select> -->
+	<select id="mainMovie" resultClass="com.dvdshop.vo.DvdInfo"><![CDATA[
+		select dvd_title, dvd_photo, DVD_INFO.dvd_num
+		from dvd_info join (select dvd_num 
+		                        from rental 
+		                        group by dvd_num 
+		                        order by count(dvd_num) desc) RENTAL
+		on DVD_INFO.dvd_num = RENTAL.dvd_num
+        where rownum < 4
+	]]></select>
+	
+	<select id="genreMovie" resultClass="com.dvdshop.vo.DvdInfo">
+		select dvd_num, dvd_title, dvd_photo
+		from dvd_Info
+		where dvd_num like #genre#||'%'
+	</select>
+	<insert id="memberJoin">
+		insert into membership values (#member_id#,#member_pass#,#member_birth#,#member_phone#,#member_email#)
+	</insert>
+	<select id="memberLogin" resultClass="String">
+		select member_pass from membership where member_id = #member_id#
+	</select>
+	<select id="dvdDetail" resultClass="com.dvdshop.vo.DvdInfo">
+		select dvd_num, dvd_title, dvd_director, dvd_actor, dvd_year, dvd_country, dvd_grade, dvd_story, dvd_genre, dvd_stock,dvd_photo
+		from dvd_Info
+		where dvd_num = #detail#
+	</select>
+	<insert id="dvdRental" parameterClass="java.util.Map">
+		insert into rental values (dvd_seq.nextval, #guest#, #code#,sysdate,null)
+	</insert>
+	<update id="dvdStock">
+		update dvd_info set dvd_stock = dvd_stock-1 
+		where dvd_num = #code#
+	</update>
+</sqlMap>
